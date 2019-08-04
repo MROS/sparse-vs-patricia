@@ -1,0 +1,18 @@
+{
+  "name": "sparse-vs-patricia",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "dependencies": {
+    "@types/node": "^12.6.9"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^1.13.0",
+    "@typescript-eslint/parser": "^1.13.0",
+    "eslint": "^6.1.0",
+    "typescript": "^3.5.3"
+  },
+  "scripts": {
+    "watch": "tsc --watch"
+  }
+}

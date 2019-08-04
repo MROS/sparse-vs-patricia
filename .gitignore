@@ -1,0 +1,13 @@
+# editor
+*.swo
+*.swp
+.vscode/
+
+# typescript
+node_modules/
+dist/
+
+# go
+
+# rust
+target/
