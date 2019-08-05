@@ -3,7 +3,7 @@ const KEY_LENGTH: number = 64;
 enum Kind {
 	INSERT,
 	GET,
-	COMMIT
+	ROOT
 }
 
 interface Instruction {
@@ -37,10 +37,10 @@ class Get {
 	}
 }
 
-const commit = {
-	kind: Kind.COMMIT,
+const root = {
+	kind: Kind.ROOT,
 	toString: () => {
-		return 'commit';
+		return 'root';
 	}
 };
 
@@ -87,7 +87,7 @@ function genTestData(n: number): Instruction[] {
 			key_pool.push(insert.key);
 		}
 	}
-	data.push(commit);
+	data.push(root);
 	return data;
 }
 
