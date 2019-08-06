@@ -9,3 +9,4 @@ edition = "2018"
 [dependencies]
 cita_trie = { path = "./cita-trie" }
 hasher = "0.1.2"
+hex = "0.3.2"
