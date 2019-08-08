@@ -13,7 +13,7 @@
     "typescript": "^3.5.3"
   },
   "scripts": {
-    "main": "node dist/main.js",
+    "main": "node --max-old-space-size=6000 dist/main.js",
     "watch": "tsc --watch"
   }
 }

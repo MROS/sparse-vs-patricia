@@ -51,7 +51,7 @@ function flushThenRestore(n: number): Instruction[] {
 
 const test_suite: [Instruction[], string][] = [
 	[simple(), 'simple'],
-	[flushThenRestore(100000), 'flushThenRestore-100000']
+	[flushThenRestore(1000000), 'flushThenRestore-1000000']
 ];
 
 export {
