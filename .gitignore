@@ -7,6 +7,9 @@
 node_modules/
 dist/
 
+# 產生的數據
+test_data/
+
 # go
 
 # rust
