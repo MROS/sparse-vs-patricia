@@ -6,9 +6,8 @@ import {
 	flush
 } from './instruction';
 
-function randomInsertGet(n: number): [Instruction[], string[]] {
+function randomInsertGet(n: number, key_pool: string[]): [Instruction[], string[]] {
 	const data: Instruction[] = [];
-	let key_pool: string[] = [];
 	// 第一個指令一定是 insert ，樹裡沒有資料無法 get
 	const first_insert = randomInsert();
 	data.push(first_insert);
@@ -27,13 +26,26 @@ function randomInsertGet(n: number): [Instruction[], string[]] {
 }
 
 function simple(): Instruction[] {
-	const data = randomInsertGet(5)[0];
+	const data = randomInsertGet(5, [])[0];
 	data.push(root);
 	return data;
 }
 
+function regularRoot(blockSize: number, rootTimes: number): Instruction[] {
+	let [ret_data, ret_key_pool] = randomInsertGet(blockSize, []);
+	ret_data.push(root);
+	for (let i = 1; i < rootTimes; i++) {
+		let [data, key_pool] = randomInsertGet(blockSize, ret_key_pool);
+		ret_key_pool = key_pool;
+		ret_data = ret_data.concat(data);
+		ret_data.push(root);
+	}
+
+	return ret_data;
+}
+
 function flushThenRestore(n: number): Instruction[] {
-	const [data, key_pool] = randomInsertGet(n);
+	const [data, key_pool] = randomInsertGet(n, []);
 	data.push(root);
 	data.push(flush);
 	for (let i = 1; i < n; i++) {
@@ -51,7 +63,8 @@ function flushThenRestore(n: number): Instruction[] {
 
 const test_suite: [Instruction[], string][] = [
 	[simple(), 'simple'],
-	[flushThenRestore(10000), 'flushThenRestore-10000']
+	[regularRoot(10, 10), 'regularRoot'],
+	[flushThenRestore(2), 'flushThenRestore-10000']
 ];
 
 export {

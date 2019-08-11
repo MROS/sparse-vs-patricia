@@ -1,3 +1,4 @@
+use std::fs;
 use std::fs::File;
 use std::io::Read;
 use std::sync::Arc;
@@ -51,8 +52,9 @@ impl BenchTree for PatriciaTrieWrap {
         }
     }
     fn _flush(&mut self) -> Option<()> {
-        self.db.flush().unwrap();
-        self.trie = PatriciaTrie::new(self.db.clone(), self.trie.hasher.clone());
+        // self.db.flush().unwrap();
+        let root = self.trie.root().unwrap();
+        self.trie = PatriciaTrie::from(self.db.clone(), self.trie.hasher.clone(), &root).unwrap();
         Some(())
     }
 }
@@ -62,6 +64,7 @@ enum Instruction {
     Get(Vec<u8>),
     Insert(Vec<u8>, Vec<u8>),
     Root,
+    Flush,
 }
 
 fn read_progeam(mut file: File) -> Vec<Instruction> {
@@ -73,7 +76,6 @@ fn read_progeam(mut file: File) -> Vec<Instruction> {
         if units[0].len() == 0 {
             continue;
         }
-        println!("{:?}", units);
         match units[0] {
             "get" => {
                 vec.push(Instruction::Get(hex::decode(units[1]).unwrap()));
@@ -86,6 +88,9 @@ fn read_progeam(mut file: File) -> Vec<Instruction> {
             }
             "root" => {
                 vec.push(Instruction::Root);
+            }
+            "flush" => {
+                vec.push(Instruction::Flush);
             }
             u => {
                 panic!("未知的指令： {}", u);
@@ -101,15 +106,23 @@ fn exectuer<Tree: BenchTree>(program: Vec<Instruction>, tree: &mut Tree) {
     for instruction in program {
         match instruction {
             Instruction::Get(key) => match tree._get(&key) {
-                Some(value) => println!("get {} 得到 {}", hex::encode(key), hex::encode(value)),
+                Some(value) => {
+                    // println!("get {} 得到 {}", hex::encode(key), hex::encode(value))
+                }
                 None => panic!("get {} 失敗", hex::encode(key)),
             },
             Instruction::Insert(key, value) => match tree._insert(&key, &value) {
-                Some(_) => println!("insert {} {}", hex::encode(key), hex::encode(value)),
+                Some(_) => {
+                    // println!("insert {} {}", hex::encode(key), hex::encode(value))
+                }
                 None => panic!("insert {} {} 失敗", hex::encode(key), hex::encode(value)),
             },
             Instruction::Root => match tree._root() {
                 Some(root) => println!("root = {}", hex::encode(root)),
+                None => panic!("root 指令失敗"),
+            },
+            Instruction::Flush => match tree._flush() {
+                Some(_) => println!("flush"),
                 None => panic!("root 指令失敗"),
             },
         }
@@ -119,14 +132,23 @@ fn exectuer<Tree: BenchTree>(program: Vec<Instruction>, tree: &mut Tree) {
 }
 
 fn main() -> std::io::Result<()> {
-    let file = File::open("../test_data/simple").expect("無法開啓測試檔案");
-    let program = read_progeam(file);
+    for entry in fs::read_dir("../test_data")? {
+        let entry = entry?;
+        let path = entry.path();
+        if path.is_dir() {
+            println!("{} 是一個目錄", path.to_str().unwrap());
+        } else {
+            let file = File::open(&path).expect("無法開啓測試檔案");
+            println!("執行測試 {:?}", path);
+            let program = read_progeam(file);
 
-    let rocks_db = Arc::new(RocksDB::new());
-    let hasher = HasherKeccak::new();
-    let mut trie = PatriciaTrieWrap::new(rocks_db, hasher);
+            let rocks_db = Arc::new(RocksDB::new());
+            let hasher = HasherKeccak::new();
+            let mut trie = PatriciaTrieWrap::new(rocks_db, hasher);
 
-    exectuer(program, &mut trie);
+            exectuer(program, &mut trie);
+        }
+    }
 
     Ok(())
 }
