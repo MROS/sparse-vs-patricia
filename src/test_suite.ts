@@ -27,7 +27,7 @@ function randomInsertGet(n: number): [Instruction[], string[]] {
 }
 
 function simple(): Instruction[] {
-	const data = randomInsertGet(1000)[0];
+	const data = randomInsertGet(5)[0];
 	data.push(root);
 	return data;
 }
@@ -51,7 +51,7 @@ function flushThenRestore(n: number): Instruction[] {
 
 const test_suite: [Instruction[], string][] = [
 	[simple(), 'simple'],
-	[flushThenRestore(1000000), 'flushThenRestore-1000000']
+	[flushThenRestore(10000), 'flushThenRestore-10000']
 ];
 
 export {

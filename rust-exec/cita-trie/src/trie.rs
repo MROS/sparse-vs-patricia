@@ -58,7 +58,7 @@ where
     root_hash: Vec<u8>,
 
     db: Arc<D>,
-    hasher: Arc<H>,
+    pub hasher: Arc<H>,
 
     cache: RefCell<HashMap<Vec<u8>, Vec<u8>>>,
     passing_keys: RefCell<HashSet<Vec<u8>>>,

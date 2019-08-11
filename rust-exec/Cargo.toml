@@ -10,3 +10,5 @@ edition = "2018"
 cita_trie = { path = "./cita-trie" }
 hasher = "0.1.2"
 hex = "0.3.2"
+tempdir = "0.3.7"
+leveldb = "0.8.4"

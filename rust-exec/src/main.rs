@@ -3,10 +3,10 @@ use std::io::Read;
 use std::sync::Arc;
 use std::time::Instant;
 
-use hasher::{Hasher, HasherKeccak}; // https://crates.io/crates/hasher
+use hasher::HasherKeccak; // https://crates.io/crates/hasher
 
-use cita_trie::{MemoryDB, DB};
 use cita_trie::{PatriciaTrie, Trie};
+use cita_trie::{RocksDB, DB};
 
 // 實作 BenchTrie ，才能做 benchmark
 trait BenchTree {
@@ -14,30 +14,46 @@ trait BenchTree {
     fn _get(&self, key: &Vec<u8>) -> Option<Vec<u8>>;
     // 獲取所有 insert, get 執行之後的梅克爾根
     fn _root(&mut self) -> Option<Vec<u8>>;
+    fn _flush(&mut self) -> Option<()>;
 }
 
-impl<D, H> BenchTree for PatriciaTrie<D, H>
-where
-    D: DB,
-    H: Hasher,
-{
+struct PatriciaTrieWrap {
+    trie: PatriciaTrie<RocksDB, HasherKeccak>,
+    db: Arc<RocksDB>,
+}
+
+impl PatriciaTrieWrap {
+    fn new(db: Arc<RocksDB>, hasher: HasherKeccak) -> Self {
+        PatriciaTrieWrap {
+            db: db.clone(),
+            trie: PatriciaTrie::new(db.clone(), Arc::new(hasher)),
+        }
+    }
+}
+
+impl BenchTree for PatriciaTrieWrap {
     fn _insert(&mut self, key: &Vec<u8>, value: &Vec<u8>) -> Option<()> {
-        match self.insert(key.to_vec(), value.to_vec()) {
+        match self.trie.insert(key.to_vec(), value.to_vec()) {
             Ok(_) => Some(()),
             _ => None,
         }
     }
     fn _get(&self, key: &Vec<u8>) -> Option<Vec<u8>> {
-        match self.get(&key.to_vec()) {
+        match self.trie.get(&key.to_vec()) {
             Ok(ret) => ret,
             _ => None,
         }
     }
     fn _root(&mut self) -> Option<Vec<u8>> {
-        match self.root() {
+        match self.trie.root() {
             Ok(ret) => Some(ret),
             _ => None,
         }
+    }
+    fn _flush(&mut self) -> Option<()> {
+        self.db.flush().unwrap();
+        self.trie = PatriciaTrie::new(self.db.clone(), self.trie.hasher.clone());
+        Some(())
     }
 }
 
@@ -103,12 +119,12 @@ fn exectuer<Tree: BenchTree>(program: Vec<Instruction>, tree: &mut Tree) {
 }
 
 fn main() -> std::io::Result<()> {
-    let file = File::open("../program")?;
+    let file = File::open("../test_data/simple").expect("無法開啓測試檔案");
     let program = read_progeam(file);
 
-    let memdb = Arc::new(MemoryDB::new(true));
-    let hasher = Arc::new(HasherKeccak::new());
-    let mut trie = PatriciaTrie::new(Arc::clone(&memdb), Arc::clone(&hasher));
+    let rocks_db = Arc::new(RocksDB::new());
+    let hasher = HasherKeccak::new();
+    let mut trie = PatriciaTrieWrap::new(rocks_db, hasher);
 
     exectuer(program, &mut trie);
 

@@ -43,6 +43,6 @@ mod db;
 mod errors;
 mod trie;
 
-pub use db::{MemoryDB, DB};
+pub use db::{MemoryDB, RocksDB, DB};
 pub use errors::{MemDBError, TrieError};
 pub use trie::{PatriciaTrie, Trie};

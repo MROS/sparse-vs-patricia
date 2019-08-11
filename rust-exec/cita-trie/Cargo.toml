@@ -16,6 +16,7 @@ parking_lot = "0.8"
 rlp = "0.3.0"
 hashbrown = "0.3.0"
 hasher = { version = "0.1", features = ["hash-keccak"] }
+rocksdb = "0.12.3"
 
 [dev-dependencies]
 rand = "0.6.3"

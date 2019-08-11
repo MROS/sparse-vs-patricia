@@ -49,6 +49,55 @@ pub trait DB: Send + Sync {
     fn is_empty(&self) -> Result<bool, Self::Error>;
 }
 
+extern crate rocksdb;
+pub struct RocksDB {
+    db: rocksdb::DB,
+}
+
+impl RocksDB {
+    pub fn new() -> Self {
+        RocksDB {
+            db: rocksdb::DB::open_default("rocksdb").unwrap()
+        }
+    }
+}
+
+impl DB for RocksDB {
+    type Error = rocksdb::Error;
+    fn get(&self, key: &[u8]) -> Result<Option<Vec<u8>>, Self::Error>{
+        self.db.get(key).and_then(|op| {
+            match op {
+                Some(db_vector) => {
+                    Ok(Some(db_vector.as_ref().to_vec()))
+                },
+                _ => {
+                    Ok(None)
+                }
+            }
+        })
+    }
+
+    fn contains(&self, key: &[u8]) -> Result<bool, Self::Error>{
+        self.get(key).and_then(|op| {
+            match op {
+                Some(_) => Ok(true),
+                None => Ok(false)
+            }
+        })
+    }
+
+    fn insert(&self, key: Vec<u8>, value: Vec<u8>) -> Result<(), Self::Error>{
+        self.db.put(key, value)
+    }
+
+    fn remove(&self, key: &[u8]) -> Result<(), Self::Error>{
+        self.db.delete(key)
+    }
+    fn flush(&self) -> Result<(), Self::Error>{
+        self.db.flush()
+    }
+}
+
 #[derive(Default, Debug)]
 pub struct MemoryDB {
     // If "light" is true, the data is deleted from the database at the time of submission.
