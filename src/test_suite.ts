@@ -31,6 +31,17 @@ function simple(): Instruction[] {
 	return data;
 }
 
+function allInsertRegularRoot(blockSize: number, rootTimes: number): Instruction[] {
+	const data = [];
+	for (let i = 0; i < rootTimes; i++) {
+		for (let j = 0; j < blockSize; j++) {
+			data.push(randomInsert());
+		}
+		data.push(root);
+	}
+	return data;
+}
+
 function regularRoot(blockSize: number, rootTimes: number): Instruction[] {
 	let [ret_data, ret_key_pool] = randomInsertGet(blockSize, []);
 	ret_data.push(root);
@@ -62,9 +73,12 @@ function flushThenRestore(n: number): Instruction[] {
 }
 
 const test_suite: [Instruction[], string][] = [
-	[simple(), 'simple'],
-	[regularRoot(10, 10), 'regularRoot'],
-	[flushThenRestore(2), 'flushThenRestore-10000']
+	// [simple(), 'simple'],
+	// [regularRoot(10, 1000), 'regularRoot'],
+	[allInsertRegularRoot(10, 1000), 'allInsertregularRoot-10-1000'],
+	[allInsertRegularRoot(100, 100), 'allInsertregularRoot-100-100'],
+	[allInsertRegularRoot(1000, 10), 'allInsertregularRoot-1000-10'],
+	// [flushThenRestore(2), 'flushThenRestore-10000']
 ];
 
 export {

@@ -7,7 +7,7 @@ use std::time::Instant;
 use hasher::HasherKeccak; // https://crates.io/crates/hasher
 
 use cita_trie::{PatriciaTrie, Trie};
-use cita_trie::{RocksDB, DB};
+use cita_trie::{RocksDB, DB, MemoryDB};
 
 // 實作 BenchTrie ，才能做 benchmark
 trait BenchTree {
@@ -19,12 +19,12 @@ trait BenchTree {
 }
 
 struct PatriciaTrieWrap {
-    trie: PatriciaTrie<RocksDB, HasherKeccak>,
-    db: Arc<RocksDB>,
+    trie: PatriciaTrie<MemoryDB, HasherKeccak>,
+    db: Arc<MemoryDB>,
 }
 
 impl PatriciaTrieWrap {
-    fn new(db: Arc<RocksDB>, hasher: HasherKeccak) -> Self {
+    fn new(db: Arc<MemoryDB>, hasher: HasherKeccak) -> Self {
         PatriciaTrieWrap {
             db: db.clone(),
             trie: PatriciaTrie::new(db.clone(), Arc::new(hasher)),
@@ -142,9 +142,10 @@ fn main() -> std::io::Result<()> {
             println!("執行測試 {:?}", path);
             let program = read_progeam(file);
 
-            let rocks_db = Arc::new(RocksDB::new());
+            // let rocks_db = Arc::new(RocksDB::new());
+            let memory_db = Arc::new(MemoryDB::new(false));
             let hasher = HasherKeccak::new();
-            let mut trie = PatriciaTrieWrap::new(rocks_db, hasher);
+            let mut trie = PatriciaTrieWrap::new(memory_db, hasher);
 
             exectuer(program, &mut trie);
         }
