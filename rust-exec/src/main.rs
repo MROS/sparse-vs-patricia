@@ -1,63 +1,17 @@
+mod bench_tree;
+mod patricia_wrap;
+
 use std::fs;
 use std::fs::File;
 use std::io::Read;
-use std::sync::Arc;
 use std::time::Instant;
-
+use std::sync::Arc;
 use hasher::HasherKeccak; // https://crates.io/crates/hasher
 
-use cita_trie::{PatriciaTrie, Trie};
-use cita_trie::{RocksDB, DB, MemoryDB};
 
-// 實作 BenchTrie ，才能做 benchmark
-trait BenchTree {
-    fn _insert(&mut self, key: &Vec<u8>, value: &Vec<u8>) -> Option<()>;
-    fn _get(&self, key: &Vec<u8>) -> Option<Vec<u8>>;
-    // 獲取所有 insert, get 執行之後的梅克爾根
-    fn _root(&mut self) -> Option<Vec<u8>>;
-    fn _flush(&mut self) -> Option<()>;
-}
-
-struct PatriciaTrieWrap {
-    trie: PatriciaTrie<MemoryDB, HasherKeccak>,
-    db: Arc<MemoryDB>,
-}
-
-impl PatriciaTrieWrap {
-    fn new(db: Arc<MemoryDB>, hasher: HasherKeccak) -> Self {
-        PatriciaTrieWrap {
-            db: db.clone(),
-            trie: PatriciaTrie::new(db.clone(), Arc::new(hasher)),
-        }
-    }
-}
-
-impl BenchTree for PatriciaTrieWrap {
-    fn _insert(&mut self, key: &Vec<u8>, value: &Vec<u8>) -> Option<()> {
-        match self.trie.insert(key.to_vec(), value.to_vec()) {
-            Ok(_) => Some(()),
-            _ => None,
-        }
-    }
-    fn _get(&self, key: &Vec<u8>) -> Option<Vec<u8>> {
-        match self.trie.get(&key.to_vec()) {
-            Ok(ret) => ret,
-            _ => None,
-        }
-    }
-    fn _root(&mut self) -> Option<Vec<u8>> {
-        match self.trie.root() {
-            Ok(ret) => Some(ret),
-            _ => None,
-        }
-    }
-    fn _flush(&mut self) -> Option<()> {
-        // self.db.flush().unwrap();
-        let root = self.trie.root().unwrap();
-        self.trie = PatriciaTrie::from(self.db.clone(), self.trie.hasher.clone(), &root).unwrap();
-        Some(())
-    }
-}
+use bench_tree::BenchTree;
+use cita_trie::{MemoryDB};
+use patricia_wrap::PatriciaTrieWrap;
 
 #[derive(Debug)]
 enum Instruction {
@@ -132,7 +86,14 @@ fn exectuer<Tree: BenchTree>(program: Vec<Instruction>, tree: &mut Tree) {
 }
 
 fn main() -> std::io::Result<()> {
-    for entry in fs::read_dir("../test_data")? {
+    let dir = match fs::read_dir("../test_data") {
+        Err(err) => {
+            println!("開啓 ../test_data 失敗: {:?}", err);
+            return Err(err);
+        }
+        Ok(l) => l,
+    };
+    for entry in dir {
         let entry = entry?;
         let path = entry.path();
         if path.is_dir() {
