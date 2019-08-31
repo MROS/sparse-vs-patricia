@@ -1,16 +1,16 @@
 mod bench_tree;
 mod patricia_wrap;
+mod sparse_tree;
 
+use hasher::HasherKeccak;
 use std::fs;
 use std::fs::File;
 use std::io::Read;
-use std::time::Instant;
 use std::sync::Arc;
-use hasher::HasherKeccak; // https://crates.io/crates/hasher
-
+use std::time::Instant; // https://crates.io/crates/hasher
 
 use bench_tree::BenchTree;
-use cita_trie::{MemoryDB};
+use cita_trie::MemoryDB;
 use patricia_wrap::PatriciaTrieWrap;
 
 #[derive(Debug)]
