@@ -7,11 +7,12 @@ use std::fs;
 use std::fs::File;
 use std::io::Read;
 use std::sync::Arc;
-use std::time::Instant; // https://crates.io/crates/hasher
+use std::time::Instant;
 
 use bench_tree::BenchTree;
 use cita_trie::MemoryDB;
 use patricia_wrap::PatriciaTrieWrap;
+use sparse_tree::SparseTree;
 
 #[derive(Debug)]
 enum Instruction {
@@ -54,13 +55,13 @@ fn read_progeam(mut file: File) -> Vec<Instruction> {
     vec
 }
 
-fn exectuer<Tree: BenchTree>(program: Vec<Instruction>, tree: &mut Tree) {
+fn exectuer<Tree: BenchTree>(program: &Vec<Instruction>, tree: &mut Tree) {
     let now = Instant::now();
 
     for instruction in program {
         match instruction {
             Instruction::Get(key) => match tree._get(&key) {
-                Some(value) => {
+                Some(_value) => {
                     // println!("get {} 得到 {}", hex::encode(key), hex::encode(value))
                 }
                 None => panic!("get {} 失敗", hex::encode(key)),
@@ -103,12 +104,16 @@ fn main() -> std::io::Result<()> {
             println!("執行測試 {:?}", path);
             let program = read_progeam(file);
 
+            let memory_db = Arc::new(MemoryDB::new(false));
+            let hasher = HasherKeccak::new();
+            let mut trie = SparseTree::new(memory_db, Arc::new(hasher));
+            exectuer(&program, &mut trie);
+
             // let rocks_db = Arc::new(RocksDB::new());
             let memory_db = Arc::new(MemoryDB::new(false));
             let hasher = HasherKeccak::new();
             let mut trie = PatriciaTrieWrap::new(memory_db, hasher);
-
-            exectuer(program, &mut trie);
+            exectuer(&program, &mut trie);
         }
     }
 
