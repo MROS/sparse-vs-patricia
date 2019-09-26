@@ -55,7 +55,7 @@ fn read_progeam(mut file: File) -> Vec<Instruction> {
     vec
 }
 
-fn exectuer<Tree: BenchTree>(program: &Vec<Instruction>, tree: &mut Tree) {
+fn execute<Tree: BenchTree>(program: &Vec<Instruction>, tree: &mut Tree) {
     let now = Instant::now();
 
     for instruction in program {
@@ -78,7 +78,7 @@ fn exectuer<Tree: BenchTree>(program: &Vec<Instruction>, tree: &mut Tree) {
             },
             Instruction::Flush => match tree._flush() {
                 Some(_) => println!("flush"),
-                None => panic!("root 指令失敗"),
+                None => panic!("flush 指令失敗"),
             },
         }
     }
@@ -107,13 +107,14 @@ fn main() -> std::io::Result<()> {
             let memory_db = Arc::new(MemoryDB::new(false));
             let hasher = HasherKeccak::new();
             let mut trie = SparseTree::new(memory_db, Arc::new(hasher));
-            exectuer(&program, &mut trie);
+            execute(&program, &mut trie);
 
             // let rocks_db = Arc::new(RocksDB::new());
-            let memory_db = Arc::new(MemoryDB::new(false));
-            let hasher = HasherKeccak::new();
-            let mut trie = PatriciaTrieWrap::new(memory_db, hasher);
-            exectuer(&program, &mut trie);
+
+            // let memory_db = Arc::new(MemoryDB::new(false));
+            // let hasher = HasherKeccak::new();
+            // let mut trie = PatriciaTrieWrap::new(memory_db, hasher);
+            // exectuer(&program, &mut trie);
         }
     }
 

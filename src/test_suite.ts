@@ -75,9 +75,10 @@ function flushThenRestore(n: number): Instruction[] {
 const test_suite: [Instruction[], string][] = [
 	// [simple(), 'simple'],
 	// [regularRoot(10, 1000), 'regularRoot'],
-	[allInsertRegularRoot(10, 1000), 'allInsertregularRoot-10-1000'],
-	[allInsertRegularRoot(100, 100), 'allInsertregularRoot-100-100'],
-	[allInsertRegularRoot(1000, 10), 'allInsertregularRoot-1000-10'],
+	// [allInsertRegularRoot(10, 1000), 'allInsertregularRoot-10-1000'],
+	// [allInsertRegularRoot(100, 100), 'allInsertregularRoot-100-100'],
+	// [allInsertRegularRoot(1000, 10), 'allInsertregularRoot-1000-10'],
+	[allInsertRegularRoot(10, 3), 'allInsertregularRoot-10-3'],
 	// [flushThenRestore(2), 'flushThenRestore-10000']
 ];
 
